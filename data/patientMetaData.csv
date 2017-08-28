@@ -1,0 +1,4 @@
+ID,LName,FName,DOB,Location,sampType,sampDate,reportLab,reportDate,summary
+12345678,Jones,Douglas,1890-01-01,Oxford,Sputum,1916-12-25,Oxford,1917-01-03,No words needed
+23456789,Cole,Gordon,1862-12-12,Cambridge,Sputum,1916-12-26,Oxford,1917-01-06,I'm worried about coup
+34567890,Evans,Diane,1887-04-04,London,Sputum,1916-12-30,Oxford,1917-01-09,Explicative
