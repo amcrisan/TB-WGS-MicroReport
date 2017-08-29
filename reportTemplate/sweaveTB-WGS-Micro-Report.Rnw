@@ -68,10 +68,11 @@
 % HEADER TEXT
 \lhead{\Large{\textbf{MYCOBACTERIUM TUBERCULOSIS WHOLE\\ GENOME SEQUENCING REPORT}} \\ \normalsize{NOT FOR DIAGNOSTIC USE}}
 \chead{}
-\rhead{PICTURE HERE}
+\rhead{\includegraphics[scale=0.25]{data/LogoDesign}}
 
 %-------------- FOOTER CONTENT ------------
-\rfoot{This is a test}
+\lfoot{Page \thepage\ of 2}
+\rfoot{Patient ID: \Sexpr{pInfo$ID} | DATE: \Sexpr{pInfo$reportDate} | LOCATION: \Sexpr{pInfo$reportLab} }
 
 %%------------------------------------------
 %  DOCUMENT CONTENT
@@ -106,11 +107,40 @@ cat("Reporting Lab &", pInfo$reportLab,"& Report Date &", pInfo$reportDate,"\\\\
 %---------------------------------------------------------
 
 \begin{reportSection}{Summary}
+
 \vspace{1mm}
 
 % This is a custom paragraph that needs to be automatically generated.
-<<sec1:summaryText,echo=FALSE,results=tex>>=
-cat(pInfo$summary)
+<<sec1:summaryTextGen,echo=FALSE,results=tex>>=
+#Function that produces the summary paragraph automatically
+
+#Specimen Summary
+posStatus<-sprintf("The specimen was positive for \\textbf{%s}.",pInfo$organism)
+
+#Drug Resistance Summary
+tmp<-drugDat %>% filter(Status == "Resistant")
+
+if(nrow(tmp) == 0){
+  rDrugStat<-"It is predicted to be \\textbf{sensitive to all drugs}"
+}else{
+  nItem<-nrow(tmp)
+  syntaxNice<-NULL
+  if(nItem==1){
+    syntaxNice<-tmp$Drug
+  }else if(nItem == 2){
+    syntaxNice<-paste(tmp$Drug,collapse=" and ")
+  }else{
+    syntaxNice<-paste(paste(tmp$Drug[1:(nrow(tmp)-1)],collapse=", "),tmp$Drug[nrow(tmp)],sep=", and ")
+  }
+  
+  rDrugStat<-sprintf("It is predicted to be \\textbf{resistant to %s}.",syntaxNice)
+}
+
+#Cluster status - I haven't implemented rules for this, so it's just going ot be hard coded
+clustStat<-"It belongs to a cluster, suggesting \\textbf{recent transmission}"
+#Summary sentence
+cat(paste(posStatus,rDrugStat,clustStat))
+
 @
 
 \end{reportSection}
@@ -123,7 +153,9 @@ cat(pInfo$summary)
 \begin{reportSection}{Organism}
 \vspace{1mm}
 
-The specimen was positive for \textbf{Mycobacterium tuberculosis}
+The specimen was positive for \textbf{\Sexpr{pInfo$organism}}
+%}
+
 \end{reportSection}
 \vspace{5mm}
 
@@ -131,21 +163,89 @@ The specimen was positive for \textbf{Mycobacterium tuberculosis}
 %  SECTION 3 : SUMMARY OF SDRUG SUSCEPTIBILITY RESULTS
 %---------------------------------------------------------
 
-\begin{reportSection}{Drug Susceptibility}
+%------ Some R functions that will fill in the drug susceptibility information
+<<sec2:drugFunction,echo=FALSE,results=tex>>=
+#NOTE: there is probably a better way to do this.....
 
+
+#this is a function that provides that latex commands for the resistant and sensitive drugs status. Drugs that are resistant are highlighed in grey (cell colour) and sensitive drugs are always listed first. This function will be use to populat the drug susceptibility table below
+susceptData<-function(drugDat=NULL,class=NULL){
+  fLineS<-filter(drugDat,Class==class) %>% filter(Status=="Sensitive")
+  fLineR<-filter(drugDat,Class==class) %>% filter(Status=="Resistant")
+  
+  #sensitive drugs first
+  if(nrow(fLineS) > 0){
+    for(i in 1:nrow(fLineS)){
+      #special line
+      if(i == nrow(fLineS)){
+        if(nrow(fLineR)==0){
+        cat(sprintf("\\multirow{-%d}{*}{%s}",i,class),sprintf("& \\multirow{-%d}{*}{Sensitive} &",i), fLineS[i,]$Drug, "&", fLineS[i,]$Details, "\\\\") 
+        }else{
+        cat(sprintf(" & \\multirow{-%d}{*}{Sensitive} &",i), fLineS[i,]$Drug, "&", fLineS[i,]$Details, "\\\\")
+        }
+      }else{
+        cat(" & &", fLineS[i,]$Drug, "&", fLineS[i,]$Details, "\\\\")
+      }
+    }
+  }
+  
+  #followed by resistant drugs
+  if(nrow(fLineR) > 0){
+    for(i in 1:nrow(fLineR)){
+      #special line
+      if(i == nrow(fLineR)){
+        cat(sprintf("\\multirow{-%d}{*}{%s}",nrow(fLineS)+nrow(fLineR),class),sprintf("& \\cellcolor[HTML]{EFEFEF} \\multirow{-%d}{*}{Resistant} &",i),"\\cellcolor[HTML]{EFEFEF}",fLineR[i,]$Drug, "&", "\\cellcolor[HTML]{EFEFEF}",fLineR[i,]$Details, "\\\\") 
+      }else{
+        cat(" & \\cellcolor[HTML]{EFEFEF} &","\\cellcolor[HTML]{EFEFEF}",fLineR[i,]$Drug, "&","\\cellcolor[HTML]{EFEFEF}",fLineR[i,]$Details, "\\\\")
+      }
+    }
+  }
+}
+
+#this function will summarize the suscepibility status in the tick boxes
+drugSusceptTickBox<-function(drugDat=NULL){
+  tickStatus<-data.frame(threshold = c(0,1,2,"2+"),
+             status = c("No drug resistance predicted",
+                        "Mono-resistance predicted",
+                        "Multi-drug resistance predicted",
+                        "Extensive drug resistance predicted"       
+                        ),
+             stringsAsFactors = FALSE
+             )
+  nResist <- drugDat %>% filter(Status=="Resistant") %>% count()
+  nResist <-nResist$n
+  
+  if(nResist>2)
+    nResist = "2+"
+  
+ for(i in 1:nrow(tickStatus)){
+   status<-NULL
+   if(tickStatus[i,]$threshold == nResist){
+     status<-paste("& \\cellcolor[HTML]{EFEFEF} $\\text{\\rlap{$\\checkmark$}}\\square$",tickStatus[i,]$status,"\\\\")
+   }else{
+     status<-paste("&$\\square$",tickStatus[i,]$status,"\\\\")
+   }
+  
+   cat(status)
+ }
+  
+}
+@
+
+\begin{reportSection}{Drug Susceptibility}
 %--------- Text for drug susceptibility and also the summary tick boxes
 \vspace{1mm}
+
 \tabulinesep=2pt
 \noindent 
 \taburulecolor{lightgray}
 \noindent \begin{tabu} to \textwidth {X[1.1,l]X}
 %------ Summary of drug susceptibility - tick boxes
-\multirow{4}{*}{\parbox{7.5cm}{\footnotesize{Drug susceptibility is predicted by the detection of known \textit{M. tuberculosis} drug resistance conferring genetic mutations}}} & $\square$ No drug resistance predicted \\
-& $\square$ Mono-resistance predicted \\
-&  \cellcolor[HTML]{EFEFEF} $\text{\rlap{$\checkmark$}}\square$ Multi-drug resistance predicted \\
-& $\square$ Extensive drug resistance predicted \\
+\multirow{4}{*}{\parbox{7.5cm}{\footnotesize{Drug susceptibility is predicted by the detection of known \textit{M. tuberculosis} drug resistance conferring genetic mutations}}}
+<<sec2:susceptibililtyTickBox,echo=FALSE,results=tex>>=
+drugSusceptTickBox(drugDat)
+@
 \end{tabu}
-
 \vspace{3mm} %% Add a Bit of space between the entities
 
 %--------- Summary of drug susceptibility - table
@@ -153,14 +253,16 @@ The specimen was positive for \textbf{Mycobacterium tuberculosis}
 \noindent 
 \taburulecolor{lightgray}
 \noindent \begin{tabu} to \textwidth {X[0.5,l]X[0.5,l]XX[2,l]}
-
-%--------------- v ADD YOUR TABLE CONTENTS BELOW v---------------------
-<<drugSusceptibility, echo=FALSE,results=tex>>=
-cat("\\hline")
-cat("Drug class" & "Prediction" & "Drug" & "Resistance Gene \\scriptsize{(Amino Acid Mutation)}","\\\\")
+\hline
+Drug class & Prediction & Drug & Resistance Gene \scriptsize{(Amino Acid Mutation)} \\
+\cline{1-4}
+<<sec2:susceptibilityTestFirstLine,echo=FALSE,results=tex>>=
+susceptData(drugDat,class="First-line")
 @
-%--------------- ^ ADD YOUR TABLE CONTENTS ABOVE ^ ---------------------
-
+\cline{1-4}
+<<sec2:susceptibilityTestSecondLine,echo=FALSE,results=tex>>=
+susceptData(drugDat,class="Second-line")
+@
 \end{tabu}
 \end{reportSection}
 
@@ -171,7 +273,31 @@ cat("Drug class" & "Prediction" & "Drug" & "Resistance Gene \\scriptsize{(Amino 
 \pagebreak
 
 \begin{reportSection}{Cluster Detection}
-This is some text that will support stuff if the cluster detection.
+\vspace{3mm}
+Current specimen was found to be closely clustered with previous specimens suggesting \textbf{recent transmission}
+\vspace{5mm}
+
+\tabulinesep=5pt
+\noindent 
+\taburulecolor{lightgray}
+\noindent \begin{tabu} to \textwidth {XX}
+%--------------- v ADD YOUR TABLE CONTENTS BELOW v ---------------------
+Relatedness  & Number of prior matching isolates  \\ \hline
+Likely Related (< 5 SNPS apart) & \textbf{2} isolates \\
+Possibly Related (6 to 30 SNPS apart) & \textbf{2} isolates \\ \hline
+%--------------- ^ ADD YOUR TABLE CONTENTS ABOVE ^ -----------------
+\end{tabu}
+
+<<clusterRandom,echo=FALSE,figs=TRUE,width=4,height=4>>=
+library(ape)
+library(ggtree)
+tree <- rtree(n = 5)
+tree$tip.label<-c("Oxford_123456","London_33146","current patient","Oxford_891876","Oxford_1997645")
+
+plot(tree)
+add.scale.bar(x=-1.2)
+#add.scale.bar(x=-0.005583239,y=5.5)
+@
 \end{reportSection}
 
 \end{document}
