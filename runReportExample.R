@@ -10,8 +10,10 @@ makeReport<-function(pInfo=NULL){
   #environment variables magically get passed when compiled
   Sweave2knitr(paste0("./output/",id,"_testReport",".Rnw", collapse =""),
                paste0("./output/",id,"_testReport",".Rnw"))
+  close()
   knit2pdf(paste0("./output/",id,"_testReport",".Rnw", collapse =""),
            compiler = 'xelatex')
+  close()
   
   #moving and getting rid of extra files (just keep the pdf)
   file.remove(paste(paste0(id,"_testReport",collapse=""),c(".log",".tex",".aux"),sep=""))
@@ -20,9 +22,12 @@ makeReport<-function(pInfo=NULL){
   file.remove(paste0("./output/",id,"_testReport",".Rnw"))
 }
 
-#testing it out
+# Testing it out with some data
 
 patDat<-read.csv(file="./data/patientMetaData.csv",header=T,stringsAsFactors = F)
+
+#Note, not tidy data, which is being converted into a tiday format
+patDrugResistData<-read.csv(file = "./data/patientDrugSusceptibilityData.csv",header=T,stringsAsFactors = F)
 
 for(i in 1:nrow(patDat)){
   makeReport(pInfo=patDat[i,])

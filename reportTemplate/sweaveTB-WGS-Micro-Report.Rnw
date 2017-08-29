@@ -139,6 +139,7 @@ The specimen was positive for \textbf{Mycobacterium tuberculosis}
 \noindent 
 \taburulecolor{lightgray}
 \noindent \begin{tabu} to \textwidth {X[1.1,l]X}
+%------ Summary of drug susceptibility - tick boxes
 \multirow{4}{*}{\parbox{7.5cm}{\footnotesize{Drug susceptibility is predicted by the detection of known \textit{M. tuberculosis} drug resistance conferring genetic mutations}}} & $\square$ No drug resistance predicted \\
 & $\square$ Mono-resistance predicted \\
 &  \cellcolor[HTML]{EFEFEF} $\text{\rlap{$\checkmark$}}\square$ Multi-drug resistance predicted \\
@@ -152,25 +153,14 @@ The specimen was positive for \textbf{Mycobacterium tuberculosis}
 \noindent 
 \taburulecolor{lightgray}
 \noindent \begin{tabu} to \textwidth {X[0.5,l]X[0.5,l]XX[2,l]}
+
 %--------------- v ADD YOUR TABLE CONTENTS BELOW v---------------------
-\hline
-Drug class                    & Prediction                                          & Drug                              & 
-Resistance Gene \scriptsize{(Amino Acid Mutation)}          \\
-\cline{1-4}
-                              &                                                     & Ethambutol                        & No resistance mutation detected      \\
-                              & \multirow{-2}{*}{Sensitive}                         & Pyrazinimide                      & No resistance mutation detected      \\
-                              & \cellcolor[HTML]{EFEFEF}                            & \cellcolor[HTML]{EFEFEF}Isoniazid & \cellcolor[HTML]{EFEFEF}katG (S315T) \\
-\multirow{-4}{*}{First Line}  & \multirow{-2}{*}{\cellcolor[HTML]{EFEFEF}Resistant} & \cellcolor[HTML]{EFEFEF}Rifampin  & \cellcolor[HTML]{EFEFEF}rpoB (S531L) \\
-\cline{1-4}
-                              &                                                     & Streptomycin                      & No resistance mutation detected      \\
-                              &                                                     & Ciprofloxacin                     & No resistance mutation detected      \\
-                              &                                                     & Ofloxacin                         & No resistance mutation detected      \\
-                              &                                                     & Moxifloacin                       & No resistance mutation detected      \\
-                              &                                                     & Amikacin                          & No resistance mutation detected      \\
-                              &                                                     & Kanamycin                         & No resistance mutation detected      \\
-\multirow{-7}{*}{Second Line} & \multirow{-7}{*}{Sensitive}                         & Capreomycin                       & No resistance mutation detected	\\
-\cline{1-4}
+<<drugSusceptibility, echo=FALSE,results=tex>>=
+cat("\\hline")
+cat("Drug class" & "Prediction" & "Drug" & "Resistance Gene \\scriptsize{(Amino Acid Mutation)}","\\\\")
+@
 %--------------- ^ ADD YOUR TABLE CONTENTS ABOVE ^ ---------------------
+
 \end{tabu}
 \end{reportSection}
 
