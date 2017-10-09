@@ -66,7 +66,7 @@
 \renewcommand{\headrulewidth}{0pt}
 
 % HEADER TEXT
-\lhead{\Large{\textbf{MYCOBACTERIUM TUBERCULOSIS WHOLE\\ GENOME SEQUENCING REPORT}} \\ \normalsize{NOT FOR DIAGNOSTIC USE}}
+\lhead{\Large{\textbf{MYCOBACTERIUM TUBERCULOSIS\\ GENOME SEQUENCING REPORT}} \\ \normalsize{NOT FOR DIAGNOSTIC USE}}
 \chead{}
 \rhead{\includegraphics[scale=0.25]{data/LogoDesign}}
 
@@ -93,10 +93,13 @@
 % get's automatically passed to the text document by the Sweave commands in the "makeReport" function.
 
 <<patientInfoTab, results=tex, echo=FALSE>>=
-cat("Patient Name  &",paste(pInfo$FName,pInfo$LName,sep=" "), "& Patient ID  &",pInfo$ID,"\\\\ \\hline ")
-cat("Birth Date &", pInfo$DOB, "& Location &", pInfo$Location,"\\\\ \\hline ")
-cat("Sample Type &",pInfo$sampType,"& Sample Date &", pInfo$sampDate, "\\\\ \\hline ")
-cat("Reporting Lab &", pInfo$reportLab,"& Report Date &", pInfo$reportDate,"\\\\ \\hline ")
+cat("Patient Name  &",paste(pInfo$FName,pInfo$LName,sep=" "), "& Barcode  &",pInfo$Barcode,"\\\\ \\hline ")
+cat("Birth Date &", pInfo$DOB, "& Patient ID  &",pInfo$ID,"\\\\ \\hline ")
+cat("Location &", pInfo$Location, "& Sample Type  &",pInfo$sampType,"\\\\ \\hline ")
+cat("Sample Source  &",pInfo$sampSource,"& Sample Date &", pInfo$sampDate, "\\\\ \\hline ")
+cat("Sample ID  &",pInfo$sampID,"& SequencedFrom &", pInfo$sampSeq, "\\\\ \\hline ")
+cat("Reporting Lab &", pInfo$reportLab,"& Report Date/Time &", pInfo$reportDate,"\\\\ \\hline ")
+cat("Requested By &", pInfo$requestor,"& Requester Contact &", "CONTACT@GENOME.COM","\\\\ \\hline ")
 @
 
 \end{tabu}
@@ -121,7 +124,7 @@ posStatus<-sprintf("The specimen was positive for \\textbf{%s}.",pInfo$organism)
 tmp<-drugDat %>% filter(Status == "Resistant")
 
 if(nrow(tmp) == 0){
-  rDrugStat<-"It is predicted to be \\textbf{sensitive to all drugs}"
+  rDrugStat<-"It is predicted to be \\textbf{susceptible to all drugs}. "
 }else{
   nItem<-nrow(tmp)
   syntaxNice<-NULL
@@ -133,7 +136,7 @@ if(nrow(tmp) == 0){
     syntaxNice<-paste(paste(tmp$Drug[1:(nrow(tmp)-1)],collapse=", "),tmp$Drug[nrow(tmp)],sep=", and ")
   }
   
-  rDrugStat<-sprintf("It is predicted to be \\textbf{resistant to %s}.",syntaxNice)
+  rDrugStat<-sprintf("It is predicted to be \\textbf{resistant to %s}. ",syntaxNice)
 }
 
 #Cluster status - I haven't implemented rules for this, so it's just going ot be hard coded
@@ -153,7 +156,7 @@ cat(paste(posStatus,rDrugStat,clustStat))
 \begin{reportSection}{Organism}
 \vspace{1mm}
 
-The specimen was positive for \textbf{\Sexpr{pInfo$organism}}
+The specimen was positive for \textit{\textbf{\Sexpr{pInfo$organism}}}, lineage \Sexpr{pInfo$lineageNum} (\textbf{\Sexpr{pInfo$lineageName}})
 %}
 
 \end{reportSection}
@@ -179,9 +182,9 @@ susceptData<-function(drugDat=NULL,class=NULL){
       #special line
       if(i == nrow(fLineS)){
         if(nrow(fLineR)==0){
-        cat(sprintf("\\multirow{-%d}{*}{%s}",i,class),sprintf("& \\multirow{-%d}{*}{Sensitive} &",i), fLineS[i,]$Drug, "&", fLineS[i,]$Details, "\\\\") 
+        cat(sprintf("\\multirow{-%d}{*}{%s}",i,class),sprintf("& \\multirow{-%d}{*}{Susceptible} &",i), fLineS[i,]$Drug, "&", fLineS[i,]$Details, "\\\\") 
         }else{
-        cat(sprintf(" & \\multirow{-%d}{*}{Sensitive} &",i), fLineS[i,]$Drug, "&", fLineS[i,]$Details, "\\\\")
+        cat(sprintf(" & \\multirow{-%d}{*}{Susceptible} &",i), fLineS[i,]$Drug, "&", fLineS[i,]$Details, "\\\\")
         }
       }else{
         cat(" & &", fLineS[i,]$Drug, "&", fLineS[i,]$Details, "\\\\")
@@ -241,7 +244,7 @@ drugSusceptTickBox<-function(drugDat=NULL){
 \taburulecolor{lightgray}
 \noindent \begin{tabu} to \textwidth {X[1.1,l]X}
 %------ Summary of drug susceptibility - tick boxes
-\multirow{4}{*}{\parbox{7.5cm}{\footnotesize{Drug susceptibility is predicted by the detection of known \textit{M. tuberculosis} drug resistance conferring genetic mutations}}}
+\multirow{4}{*}{\parbox{7.5cm}{\footnotesize{Resistance is reported when a high-confidence resistance-conferring mutation is detected. \textbf{``No mutation detected'' does not exclude the possibility of resistance}}}} 
 <<sec2:susceptibililtyTickBox,echo=FALSE,results=tex>>=
 drugSusceptTickBox(drugDat)
 @
@@ -252,9 +255,9 @@ drugSusceptTickBox(drugDat)
 \tabulinesep=5pt
 \noindent 
 \taburulecolor{lightgray}
-\noindent \begin{tabu} to \textwidth {X[0.5,l]X[0.5,l]XX[2,l]}
+\noindent \begin{tabu} to \textwidth {X[0.5,l]X[0.75,l]X[0.75,l]X[2,l]}
 \hline
-Drug class & Prediction & Drug & Resistance Gene \scriptsize{(Amino Acid Mutation)} \\
+Drug class & Interpretation & Drug & Resistance Gene \scriptsize{(Amino Acid Mutation)} \\
 \cline{1-4}
 <<sec2:susceptibilityTestFirstLine,echo=FALSE,results=tex>>=
 susceptData(drugDat,class="First-line")
@@ -288,16 +291,81 @@ Possibly Related (6 to 30 SNPS apart) & \textbf{2} isolates \\ \hline
 %--------------- ^ ADD YOUR TABLE CONTENTS ABOVE ^ -----------------
 \end{tabu}
 
-<<clusterRandom,echo=FALSE,figs=TRUE,width=4,height=4>>=
+<<clusterRandom,echo=FALSE,figs=TRUE,width=3,height=3>>=
 library(ape)
 library(ggtree)
 tree <- rtree(n = 5)
 tree$tip.label<-c("Oxford_123456","London_33146","current patient","Oxford_891876","Oxford_1997645")
 
-plot(tree)
-add.scale.bar(x=-1.2)
+#labels do get cutt off with this hack, but it's not ideal
+ggtree(tree)+
+  theme_tree2() + 
+  geom_tiplab(align=TRUE, linesize=.5) +
+  xlim(0, sum(tree$edge.length))+
+  xlab("SNP DISTANCE")
+
+#plot(tree,no.margin=TRUE)
+#add.scale.bar(x=10)
 #add.scale.bar(x=-0.005583239,y=5.5)
 @
 \end{reportSection}
+
+%---------------------------------------------------------
+%  SECTION 5 : ADDITIONAL COMMENTS
+%---------------------------------------------------------
+\begin{reportSection}{Assay Details}
+\vspace{1mm}
+\tabulinesep=5pt
+\noindent 
+\taburulecolor{lightgray}
+\noindent \begin{tabu} to \textwidth {|XU||XU|}
+\hline
+% The table below contains the information that is required by ISO15189 reporting standards
+%-------------------- v ADD YOUR TABLE CONTENTS BELOW v --------------------------
+Sample ID  & A12345678       & Barcode        &          \\ \hline
+Sequencer    & Illumina HiSeq 2500     & Method          & WGS           \\ \hline
+Pipeline   & ReSeqTB v.3.2c         & Reference       & H37Rv           \\ \hline
+%-------------------- ^ ADD YOUR TABLE CONTENTS ABOVE ^ --------------------------
+\end{tabu}
+\vspace{1mm}
+
+\end{reportSection}
+\vspace{1mm}
+
+%---------------------------------------------------------
+%  SECTION 6 : ADDITIONAL COMMENTS
+%---------------------------------------------------------
+%Comments are for anything funny that was found by the 
+\begin{reportSection}{Comments}
+% This is where any additional comments might go
+\vspace{1mm}
+
+\footnotesize{\Sexpr{pInfo$comments}}
+\vspace{2mm}
+
+\textcolor{gray}{\footnotesize{\textit{\textbf{Standard Disclaimer:} Low frequency hetero-resistance below the limit of detection by sequencing may affect typing results.  The interpretation provided is based on the current understanding of genotype-phenotype relationships.}}}
+
+\end{reportSection}
+\vspace{1mm}
+
+%---------------------------------------------------------
+%  SECTION 7 : AUTHORIZATION
+%---------------------------------------------------------
+\begin{reportSection}{Authorised}
+% This section is required by ISO15189 standards
+\vspace{1mm}
+\tabulinesep=5pt
+\noindent 
+\taburulecolor{lightgray}
+\noindent \begin{tabu} to \textwidth {|XU||XU|}
+\hline
+%--------------- v ADD YOUR TABLE CONTENTS BELOW v ---------------------
+Signature  &   & Name  &   \\ \hline
+Position   &   & Date    &        \\ \hline
+%--------------- ^ ADD YOUR TABLE CONTENTS ABOVE ^ ---------------------
+\end{tabu}
+
+\end{reportSection}
+
 
 \end{document}

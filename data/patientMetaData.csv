@@ -1,5 +1,5 @@
-ID,LName,FName,DOB,Location,sampType,sampDate,reportLab,reportDate,summary,organism
-12345678,Jones,Douglas,1890-01-01,Oxford,Sputum,1916-12-25,Oxford,1917-01-03,No words needed,Doppelganglius Bob
-23456789,Cole,Gordon,1862-12-12,Cambridge,Sputum,1916-12-26,Oxford,1917-01-06,I'm worried about coup,Mycobacterium tuberculosis
-34567890,Evans,Diane,1887-04-04,London,Sputum,1916-12-30,Oxford,1917-01-09,Explicative,Mycobacterium tuberculosis
-45678901,Brennan,Andy,1877-05-26,London,Sputum,1917-01-01,Oxford,1917-01-11,Okay,Mycobacterium tuberculosis
+ID,Barcode,LName,FName,DOB,Location,sampType,sampID,sampDate,sampSource,sampSeq,reportLab,reportDate,comments,organism,requestor,requestorContact,lineageNum,lineageName
+12345678,BARCODE,Jones,Douglas,1890-01-01,Oxford,Sputum,ABDH615D!,1916-12-25; 15:33,Pulmonary,MGIT Cultured Isolate,Oxford,1917-01-03,No words needed,Doppelganglius Bob,Dr. Requestor Name,req_contact@genome.com,2.2.1,East-Asian Beijing
+23456789,BARCODE,Cole,Gordon,1862-12-12,Cambridge,Sputum,ABD7895715,1916-12-26; 14:22,Pulmonary,MGIT Cultured Isolate,Oxford,1917-01-06,I'm worried about coup,Mycobacterium tuberculosis,Dr. Requestor Name,req_contact@genome.com,2.2.1,East-Asian Beijing
+34567890,BARCODE,Evans,Diane,1887-04-04,London,Sputum,917BAHDYB1,1916-12-30; 18:45,Pulmonary,MGIT Cultured Isolate,Oxford,1917-01-09,No additional comments,Mycobacterium tuberculosis,Dr. Requestor Name,req_contact@genome.com,2.2.1,East-Asian Beijing
+45678901,BARCODE,Brennan,Andy,1877-05-26,London,Sputum,10DBFH162784,1917-01-01' 08:30,Pulmonary,MGIT Cultured Isolate,Oxford,1917-01-11,No additional comments,Mycobacterium tuberculosis,Dr. Requestor Name,req_contact@genome.com,2.2.1,East-Asian Beijing
